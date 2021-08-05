@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.insert(0, '/Users/antoinerestivo/usr/lib/python-2.7/site-packages')
 from z3 import *
 from tools import *
 from observedDistribution import *
