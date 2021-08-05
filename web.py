@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.insert(0, '/Users/antoinerestivo/usr/lib/python-2.7/site-packages')
 from z3 import *
 from tools import *
 from observedDistribution import *
@@ -388,8 +385,3 @@ def compatibilityWeb(pattern):
                         s.add(Pa11d11b21c22d22[x1][x2][x3][x4][x5] == And(Pad[x1][x2],Pb[x3],Pcd[x4][x5]))
 
     return s.check()
-
-# orbit = np.loadtxt('satLocalDecomp.txt')
-# for p in orbit:
-#     state = compatibilityWeb(p)
-#     print(p, state)
