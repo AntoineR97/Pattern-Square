@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.insert(0, '/Users/antoinerestivo/usr/lib/python-2.7/site-packages')
 from z3 import *
 from tools import *
 from observedDistribution import *
@@ -12,7 +9,6 @@ from ring8 import *
 from ring12 import *
 from localDecomp import *
 from web import *
-from spiral import *
 from scipy.io import savemat
 
 B = BoolSort()
@@ -43,7 +39,7 @@ def squareCompatibility(pattern):
     ans = ans1 and ans2
     return ans
 
-orbit = np.loadtxt('/Users/antoinerestivo/Desktop/squarePattern/orbit.txt')
+orbit = np.loadtxt('path/to/orbit.txt')
 
 unsatSquare = []
 satSquare = []
@@ -87,16 +83,6 @@ for i in tqdm(unsatLocalDecomp, ncols=70):
             unsatRing.append(i)
     elif state8 == unsat:
         unsatRing.append(i)
-
-# savemat('satRing.mat', {'satRing':satRing})
-
-# print('Spiral inflation')
-# for i in tqdm(satRing, ncols=70):
-#     state = compatibilitySpiral(i)
-#     if state == unsat:
-#         unsatSpiral.append(i)
-#     elif state == sat:
-#         satSpiral.append(i)
 
 print('Web inflation')
 for i in tqdm(satRing, ncols=70):
