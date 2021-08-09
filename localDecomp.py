@@ -1,13 +1,20 @@
 from z3 import *
-from tools import *
 import numpy as np
-#from scipy.io import savemat
-#import multiprocessing
-from functools import partial
-#import time
+from scipy.io import savemat
+import time
 
 B = BoolSort()
 Z = IntSort()
+
+def tensor(pattern):
+    k = len(pattern)
+
+    if k > 2:
+        p = [tensor(pattern[0:int(k/2)]), tensor(pattern[int(k/2):k])]
+    else:
+        p = pattern
+
+    return p
 
 def responseFunc(inter, C):
     p = []
@@ -24,44 +31,30 @@ def responseFunc(inter, C):
     return p
 
 def localDecomp(pattern, C):
-    #start_time = time.time()
     alpha, beta, gamma, delta = Ints('alpha beta gamma delta')
     a, b, c, d = Ints('a b c d')
     P = tensor(pattern)
-    s = Solver()
+    g = Tactic('smt').solver()
 
-    pA = Array('pA', Z, B)
-    pB = Array('pB', Z, B)
-    pC = Array('pC', Z, B)
-    pD = Array('pD', Z, B)
+    Pa = responseFunc(BoolVector('pA', 2*C**2), C)
+    Pb = responseFunc(BoolVector('pB', 2*C**2), C)
+    Pc = responseFunc(BoolVector('pC', 2*C**2), C)
+    Pd = responseFunc(BoolVector('pD', 2*C**2), C)
 
-    interA = []
-    interB = []
-    interC = []
-    interD = []
-    for i in range(2*C**2):
-        interA.append(Select(pA, i))
-        interB.append(Select(pB, i))
-        interC.append(Select(pC, i))
-        interD.append(Select(pD, i))
-
-    Pa = responseFunc(interA, C)
-    Pb = responseFunc(interB, C)
-    Pc = responseFunc(interC, C)
-    Pd = responseFunc(interD, C)
+    start_time = time.time()
 
     for delta in range(C):
         for alpha in range(C):
-            s.add(Or(Pa[0][delta][alpha], Pa[1][delta][alpha]))
+            g.add(Or(Pa[0][delta][alpha], Pa[1][delta][alpha]))
     for alpha in range(C):
         for beta in range(C):
-            s.add(Or(Pb[0][alpha][beta], Pb[1][alpha][beta]))
+            g.add(Or(Pb[0][alpha][beta], Pb[1][alpha][beta]))
     for beta in range(C):
         for gamma in range(C):
-            s.add(Or(Pc[0][beta][gamma], Pc[1][beta][gamma]))
+            g.add(Or(Pc[0][beta][gamma], Pc[1][beta][gamma]))
     for gamma in range(C):
         for delta in range(C):
-            s.add(Or(Pd[0][gamma][delta], Pd[1][gamma][delta]))
+            g.add(Or(Pd[0][gamma][delta], Pd[1][gamma][delta]))
 
     for a in [0, 1]:
         for b in [0, 1]:
@@ -73,20 +66,11 @@ def localDecomp(pattern, C):
                     for gamma in range(C) for delta in range(C)])
 
                     if P[a][b][c][d]:
-                        s.add(Pabcd)
+                        g.add(Pabcd)
                     else:
-                        s.add(Not(Pabcd))
+                        g.add(Not(Pabcd))
 
-                    if s.check() == unsat:
-                        break
-
-    #end_time = time.time()
-    return s.check()
-
-# def parallelRun(orbit, C):
-#     s = []
-#     u = []
-#     pool_obj = multiprocessing.Pool(processes=1)
-#     subFunc = partial(localDecomp, C=C)
-#     ans = pool_obj.map(subFunc, (i for i in orbit))
-#     return ans
+    ans = g.check()
+    end_time = time.time()
+    print('Running time:', end_time-start_time)
+    return ans
